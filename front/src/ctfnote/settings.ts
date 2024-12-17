@@ -6,6 +6,7 @@ import {
   SettingPatch,
   SettingsInfoFragment,
   useGetAdminSettingsQuery,
+  useGetIcalPasswordQuery,
   useGetSettingsQuery,
   useUpdateSettingsMutation,
 } from 'src/generated/graphql';
@@ -22,7 +23,7 @@ function parseStyle(s: string): SettingsColorMap {
   const json = Object.assign({}, defaultColors);
   try {
     const r = JSON.parse(s) as SettingsColorMap;
-    if (typeof r !== 'object') throw 'Invalid';
+    if (typeof r !== 'object') throw new Error('Invalid');
     for (const name of defaultColorsNames) {
       json[name] = r[name];
     }
@@ -33,23 +34,25 @@ function parseStyle(s: string): SettingsColorMap {
 /* Builders  */
 
 export function buildSettings(
-  fragment: Partial<SettingsInfoFragment>
+  fragment: Partial<SettingsInfoFragment>,
 ): Settings {
   return {
     registrationAllowed: fragment.registrationAllowed ?? false,
     registrationPasswordAllowed: fragment.registrationPasswordAllowed ?? false,
     style: parseStyle(fragment.style ?? '{}'),
+    discordIntegrationEnabled: fragment.discordIntegrationEnabled ?? false,
   };
 }
 
 export function buildAdminSettings(
-  fragment: Partial<AdminSettingsInfoFragment>
+  fragment: Partial<AdminSettingsInfoFragment>,
 ): AdminSettings {
   return {
     ...buildSettings(fragment),
     registrationPassword: fragment.registrationPassword ?? '',
     registrationDefaultRole: fragment.registrationDefaultRole ?? Role.UserGuest,
     style: parseStyle(fragment.style ?? '{}'),
+    icalPassword: fragment.icalPassword ?? '',
   };
 }
 
@@ -96,6 +99,13 @@ export function getAdminSettings() {
   });
 }
 
+export function getIcalPassword() {
+  const r = useGetIcalPasswordQuery();
+  return wrapQuery(r, 'no pass', (data) => {
+    return data.settings.nodes[0].icalPassword;
+  });
+}
+
 /* Mutations */
 
 export function useUpdateSettings() {
@@ -117,7 +127,7 @@ export function provideSettings() {
 export function injectSettings() {
   const settings = inject(SettingsSymbol);
   if (!settings) {
-    throw 'ERROR';
+    throw new Error('injectSettings ERROR');
   }
 
   return settings;

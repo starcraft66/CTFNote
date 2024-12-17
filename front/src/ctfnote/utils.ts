@@ -1,14 +1,23 @@
-import { UseQueryReturn, useResult } from '@vue/apollo-composable';
+import { OperationVariables } from '@apollo/client';
+import { UseQueryReturn } from '@vue/apollo-composable';
 import ColorHash from 'color-hash';
 import { DeepNonNullable, DeepRequired } from 'ts-essentials';
-import { inject, InjectionKey, Ref } from 'vue';
+import { computed, inject, InjectionKey, UnwrapRef } from 'vue';
 
-export function wrapQuery<D, T, U>(
+export function wrapQuery<D, T, U extends OperationVariables>(
   query: UseQueryReturn<T, U>,
   def: D,
-  wrapper: (data: DeepRequired<DeepNonNullable<T>>) => D
+  wrapper: (data: DeepRequired<DeepNonNullable<T>>) => D,
 ) {
-  const result = useResult<T, D, D>(query.result as Ref<T>, def, wrapper);
+  const result = computed(() => {
+    if (query.result.value) {
+      return wrapper(
+        query.result.value as DeepRequired<DeepNonNullable<T>>,
+      ) as UnwrapRef<D>;
+    } else {
+      return def as UnwrapRef<D>;
+    }
+  });
 
   const onResult = function (cb: (arg: D) => void) {
     query.onResult((data) => {
@@ -44,6 +53,7 @@ export function parseJson<T>(s: string): T | null {
   try {
     return parseJsonStrict<T | null>(s);
   } catch (e) {
+    console.error(e);
     return null;
   }
 }

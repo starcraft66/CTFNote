@@ -1,29 +1,29 @@
 <template>
   <div class="row q-gutter-md">
     <div class="col">
-      <q-card bordered>
+      <q-card>
         <q-card-section class="text-h6"> Colors </q-card-section>
-        <q-card-section>
-          <div class="row q-gutter-md">
-            <div
-              v-for="(color, label) in colors"
-              :key="label"
-              class="col col-auto"
-            >
-              <color-picker
-                :model-value="color"
-                :label="label"
-                @update:model-value="(c) => updateStyle(label, c)"
-              />
-            </div>
+
+        <q-card-section class="row q-pt-none q-gutter-md">
+          <div
+            v-for="(color, label) in colors"
+            :key="label"
+            class="col col-auto"
+          >
+            <color-picker
+              :model-value="color"
+              :label="label"
+              @update:model-value="(c) => updateStyle(label, c)"
+            />
           </div>
         </q-card-section>
-        <q-card-actions align="right">
+
+        <q-card-actions align="right" class="q-px-md q-pb-md q-pt-none">
           <q-btn label="reset" color="warning" flat @click="reset" />
           <q-btn
             label="save"
             :disable="!needSave"
-            :color="needSave ? 'positive' : 'grey-5'"
+            color="positive"
             @click="saveStyle"
           />
         </q-card-actions>
@@ -57,7 +57,7 @@ export default defineComponent({
           colors[name] = s[name];
         }
       },
-      { immediate: true }
+      { immediate: true },
     );
 
     watch(
@@ -68,7 +68,7 @@ export default defineComponent({
           root.style.setProperty(`--q-${name}`, value);
         }
       },
-      { immediate: true }
+      { immediate: true },
     );
 
     return {
@@ -98,7 +98,7 @@ export default defineComponent({
     },
     reset() {
       for (const [name, value] of Object.entries(
-        ctfnote.settings.defaultColors
+        ctfnote.settings.defaultColors,
       ) as ColorPairs) {
         this.colors[name] = value;
       }
@@ -108,7 +108,7 @@ export default defineComponent({
         this.updateSettings({
           style: JSON.stringify(this.colors),
         }),
-        { message: 'Theme changed!', icon: 'palette' }
+        { message: 'Theme changed!', icon: 'palette' },
       );
     },
   },

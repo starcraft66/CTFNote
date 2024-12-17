@@ -4,77 +4,91 @@
       <q-card-section>
         <div class="text-h5">Register</div>
       </q-card-section>
-      <q-card-section class="q-gutter-md">
+
+      <q-card-section class="q-pt-none q-pb-sm q-gutter-sm">
         <template v-if="registrationAnyAllowed">
           <q-input
             v-model="form.login"
             filled
-            label="Choose a login"
+            dense
+            label="Username"
             required
+            autofocus
           />
           <password-input
             v-model="form.password"
-            label="Choose a password"
+            label="Password"
+            dense
             clearable
             required
           />
           <q-input
             v-if="!!token"
             filled
+            dense
             readonly
             :model-value="token"
-            hint=""
             label="Auth token"
-          />
+            class="q-pt-sm"
+          >
+            <template #prepend>
+              <q-icon name="key" />
+            </template>
+          </q-input>
           <template v-else>
             <q-checkbox
               v-if="registrationPasswordForced"
               :model-value="true"
               disable
-              title="A password is required to log on this instance."
-              label="I have a password"
+              title="A registration password is required to log on this instance."
+              label="I have a registration password (required)"
             />
             <q-checkbox
               v-else-if="registrationPasswordAllowed"
               v-model="usePassword"
-              label="I have a password"
+              label="I have a registration password"
             />
             <password-input
               v-if="
                 registrationPasswordAllowed &&
                 (usePassword || registrationPasswordForced)
               "
-              v-model="form.ctfnotePassword"
+              v-model="form.registrationPassword"
               filled
+              dense
               clearable
-              label="CTFNote password"
+              label="Registration password"
               required
-            />
+              class="q-mt-xs"
+            >
+              <template #prepend>
+                <q-icon name="key" />
+              </template>
+            </password-input>
           </template>
         </template>
-        <div v-else>Registration are disabled.</div>
+        <div v-else class="q-pb-sm">Registration is disabled.</div>
       </q-card-section>
 
-      <q-card-actions class="q-pa-md row justify-between">
-        <div>
-          I already have an account:
-          <b>
-            <ctf-note-link
-              name="auth-login"
-              class="text-primary"
-              label="LOGIN"
-              underline
-            />
-          </b>
-        </div>
+      <q-card-actions v-if="registrationAnyAllowed" class="row q-px-md q-pb-md">
         <q-btn
           type="submit"
           label="Register"
           color="primary"
-          :disable="!registrationAnyAllowed"
+          class="full-width"
         />
       </q-card-actions>
     </q-form>
+  </q-card>
+
+  <q-card class="q-mt-md">
+    <q-card-actions class="row q-px-md">
+      <span>Already have an account?</span>
+      <q-space />
+      <ctf-note-link name="auth-login">
+        <q-btn flat color="primary">Login</q-btn>
+      </ctf-note-link>
+    </q-card-actions>
   </q-card>
 </template>
 
@@ -99,7 +113,7 @@ export default defineComponent({
       form: reactive({
         login: '',
         password: '',
-        ctfnotePassword: '',
+        registrationPassword: '',
       }),
       usePassword: ref(false),
     };
@@ -121,7 +135,7 @@ export default defineComponent({
   methods: {
     submit() {
       const opts = {
-        message: `Logged as ${this.form.login}!`,
+        message: `Logged in as ${this.form.login}!`,
         icon: 'person',
       };
       let registerPromise;
@@ -130,13 +144,13 @@ export default defineComponent({
         registerPromise = this.registerWithToken(
           this.form.login,
           this.form.password,
-          this.token
+          this.token,
         );
       } else if (this.registrationPasswordForced || this.usePassword) {
         registerPromise = this.registerWithPassword(
           this.form.login,
           this.form.password,
-          this.form.ctfnotePassword
+          this.form.registrationPassword,
         );
       } else {
         registerPromise = this.register(this.form.login, this.form.password);

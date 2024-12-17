@@ -51,6 +51,13 @@ module.exports = configure(function (ctx) {
     build: {
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
+      sassLoaderOptions: {
+        sassOptions: {
+          quietDeps: true,
+          silenceDeprecations: ['slash-div'],
+        },
+      },
+
       // transpile: false,
 
       // Add dependencies for transpiling with Babel (Array of string/regex)
@@ -85,6 +92,9 @@ module.exports = configure(function (ctx) {
           ws: true,
         },
         '/uploads': {
+          target: 'http://127.0.0.1:3000',
+        },
+        '/calendar.ics': {
           target: 'http://127.0.0.1:3000',
         },
         '/pad': {
