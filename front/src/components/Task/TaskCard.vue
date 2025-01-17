@@ -1,20 +1,20 @@
 <template>
   <q-card bordered class="task" :class="{ solved: task.solved }">
-    <task-menu :task="task" />
+    <task-menu :task="task" :context-menu="true" />
     <q-card-section>
-      <task-badge :task="task" />
-      <div class="row justify-between">
+      <task-badge display-in-corner :task="task" />
+      <div class="col justify-between">
         <ctf-note-link
           tag="a"
           underline
-          class="text-h6 col text-light"
+          class="text-h6 col-auto text-light"
           :ctf="ctf"
           :task="task"
           name="task"
           :label="task.title"
         />
-        <div class="col col-auto">
-          <task-category-chip :name="task.category" />
+        <div class="col-auto">
+          <task-tags-list :tags="task.assignedTags" />
         </div>
       </div>
     </q-card-section>
@@ -55,7 +55,7 @@ import CtfNoteLink from '../Utils/CtfNoteLink.vue';
 import TaskBadge from './TaskBadge.vue';
 import TaskMenu from './TaskMenu.vue';
 import TaskBtnGroup from './TaskBtnGroup.vue';
-import TaskCategoryChip from './TaskCategoryChip.vue';
+import TaskTagsList from './TaskTagsList.vue';
 import TaskPlayerList from './TaskPlayerList.vue';
 
 export default defineComponent({
@@ -65,7 +65,7 @@ export default defineComponent({
     TaskMenu,
     TaskPlayerList,
     TaskBtnGroup,
-    TaskCategoryChip,
+    TaskTagsList,
   },
   props: {
     ctf: { type: Object as () => Ctf, required: true },
@@ -102,7 +102,9 @@ export default defineComponent({
 
 .body--dark {
   .task {
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
     &:hover {
       box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.3);
     }
@@ -111,7 +113,9 @@ export default defineComponent({
 
 .body--light {
   .task {
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
     &:hover {
       box-shadow: 0px 0px 5px rgba(25, 25, 25, 0.8);
     }

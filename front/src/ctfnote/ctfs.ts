@@ -12,6 +12,7 @@ import {
   SubscribeToCtfDeletedDocument,
   SubscribeToCtfDeletedSubscription,
   SubscribeToCtfDeletedSubscriptionVariables,
+  TagFragment,
   TaskFragment,
   useCreateCtfMutation,
   useCtfsQuery,
@@ -21,6 +22,7 @@ import {
   useIncomingCtfsQuery,
   useInviteUserToCtfMutation,
   usePastCtfsQuery,
+  useSetDiscordEventLinkMutation,
   useSubscribeToCtfCreatedSubscription,
   useSubscribeToCtfDeletedSubscription,
   useSubscribeToCtfSubscription,
@@ -33,6 +35,8 @@ import {
 import { CtfInvitation, makeId } from './models';
 import { Ctf, Profile, Task } from './models';
 import { wrapQuery } from './utils';
+import { buildTag } from './tags';
+import { buildWorkingOn } from './tasks';
 
 type FullCtfResponse = {
   ctf: CtfFragment & {
@@ -64,9 +68,10 @@ export function buildTask(task: TaskFragment): Task {
     ctfId: makeId(task.ctfId),
     slug,
     solved: task.solved ?? false,
-    workOnTasks: task.workOnTasks.nodes.map((n) =>
-      makeId<Profile>(n.profileId)
-    ),
+    workOnTasks: task.workOnTasks.nodes.map((w) => buildWorkingOn(w)),
+    assignedTags: task.assignedTags.nodes
+      .filter((t) => t.__typename && t.tag?.__typename)
+      .map((t) => buildTag(t.tag as TagFragment)),
   };
 }
 
@@ -83,7 +88,7 @@ function extractDate(d: string) {
       return r;
     }
   }
-  throw 'invalid date';
+  throw new Error('invalid date');
 }
 
 export function buildCtf(ctf: CtfFragment): Ctf {
@@ -109,6 +114,7 @@ export function buildCtf(ctf: CtfFragment): Ctf {
     endTime: extractDate(ctf.endTime),
     tasks: [],
     invitations: [],
+    discordEventLink: ctf.discordEventLink ?? null,
   };
 }
 
@@ -126,7 +132,7 @@ export function buildFullCtf(data: FullCtfResponse): Ctf {
 export function getIncomingCtfs() {
   const query = useIncomingCtfsQuery({ fetchPolicy: 'cache-and-network' });
   const wrappedQuery = wrapQuery(query, [], (data) =>
-    data.incomingCtf.nodes.map(buildCtf)
+    data.incomingCtf.nodes.map(buildCtf),
   );
 
   /* Watch deletion */
@@ -221,8 +227,8 @@ export function getPastCtfs(...args: Parameters<typeof usePastCtfsQuery>) {
           Number(new Date(a.startTime)) > Number(new Date(b.startTime))
             ? -1
             : Number(new Date(a.startTime)) < Number(new Date(b.startTime))
-            ? 1
-            : 0
+              ? 1
+              : 0,
         );
       }
       return {
@@ -248,7 +254,7 @@ export function getCtf(...args: Parameters<typeof useGetFullCtfQuery>) {
 export function getAllCtfs() {
   const query = useCtfsQuery();
   const wrappedQuery = wrapQuery(query, [], (data) =>
-    data.ctfs.nodes.map(buildCtf)
+    data.ctfs.nodes.map(buildCtf),
   );
   return wrappedQuery;
 }
@@ -292,6 +298,12 @@ export function useUninviteUserToCtf() {
   const { mutate } = useUninviteUserToCtfMutation({});
   return (ctf: Ctf, profile: Profile) =>
     mutate({ ctfId: ctf.id, profileId: profile.id });
+}
+
+export function useSetDiscordEventLink() {
+  const { mutate } = useSetDiscordEventLinkMutation({});
+  return (ctf: Ctf, discordEventLink: string) =>
+    mutate({ id: ctf.id, link: discordEventLink });
 }
 
 /* Subscription */

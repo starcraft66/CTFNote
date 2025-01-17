@@ -1,5 +1,5 @@
 import { ParsedTask, Parser } from '.';
-import { parseJson, parseJsonStrict } from '../utils';
+import { parseJsonStrict } from '../utils';
 
 // output of https://ctf.hackthebox.com/api/public/challengeCategories
 const challengeCategories: { [index: number]: string } = {
@@ -24,6 +24,9 @@ const challengeCategories: { [index: number]: string } = {
   20: 'Cloud',
   21: 'Scada',
   23: 'ML',
+  25: 'TTX',
+  26: 'Trivia',
+  30: 'Sherlocks',
 };
 
 const HTBParser: Parser = {
@@ -58,22 +61,11 @@ const HTBParser: Parser = {
 
       tasks.push({
         title: challenge.name,
-        category: category,
+        tags: [category],
         description: challenge.description,
       });
     }
     return tasks;
-  },
-  isValid(s) {
-    const data = parseJson<{
-      challenges: Array<{
-        id: number;
-        name: string;
-        description: string;
-        challenge_category_id: number;
-      }>;
-    }>(s);
-    return Array.isArray(data?.challenges);
   },
 };
 

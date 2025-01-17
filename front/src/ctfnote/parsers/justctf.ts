@@ -1,5 +1,5 @@
 import { ParsedTask, Parser } from '.';
-import { parseJson, parseJsonStrict } from '../utils';
+import { parseJsonStrict } from '../utils';
 
 const justCTFParser: Parser = {
   name: 'justCTF parser',
@@ -17,7 +17,7 @@ const justCTFParser: Parser = {
           description: string;
           points: number;
           solvers: number;
-        }
+        },
       ]
     >(s);
     if (data == null) {
@@ -25,45 +25,21 @@ const justCTFParser: Parser = {
     }
 
     for (const challenge of data) {
-      if (!challenge.description || !challenge.name) {
+      if (
+        !challenge.description ||
+        !challenge.name ||
+        !Array.isArray(challenge.categories)
+      ) {
         continue;
       }
-      let category = 'unknown';
-
-      // as soon as CTFNote supports tags, we can rewrite this
-      // and maybe add the difficulty as a tag as well
-      if (challenge.categories.length > 0) category = challenge.categories[0];
 
       tasks.push({
         title: challenge.name,
-        category: category,
+        tags: challenge.categories,
         description: challenge.description,
       });
     }
     return tasks;
-  },
-  isValid(s) {
-    const data = parseJson<
-      [
-        {
-          id: number;
-          name: string;
-          categories: [string];
-          difficult: string;
-          description: string;
-          points: number;
-          solvers: number;
-        }
-      ]
-    >(s);
-    return (
-      data != null &&
-      data?.length > 0 &&
-      data[0].id != null &&
-      data[0].name != null &&
-      Array.isArray(data[0].categories) &&
-      data[0].points != null
-    );
   },
 };
 

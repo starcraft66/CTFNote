@@ -1,5 +1,9 @@
 import { ParsedTask, Parser } from '.';
-import { parseJson, parseJsonStrict } from '../utils';
+import { parseJsonStrict } from '../utils';
+
+interface CTFdTags {
+  value: string;
+}
 
 const CTFDParser: Parser = {
   name: 'CTFd/RCTF parser',
@@ -7,8 +11,9 @@ const CTFDParser: Parser = {
 
   parse(s: string): ParsedTask[] {
     const tasks = [];
-    const data =
-      parseJsonStrict<{ data: { name: string; category: string }[] }>(s);
+    const data = parseJsonStrict<{
+      data: { name: string; category: string; tags: CTFdTags[] }[];
+    }>(s);
     if (!Array.isArray(data?.data)) {
       return [];
     }
@@ -16,13 +21,14 @@ const CTFDParser: Parser = {
       if (!task.name || !task.category) {
         continue;
       }
-      tasks.push({ title: task.name, category: task.category });
+      const tags: Set<string> = new Set();
+      if (task.tags != null && Array.isArray(task.tags))
+        task.tags.forEach((t) => tags.add(t.value));
+
+      tags.add(task.category);
+      tasks.push({ title: task.name, tags: Array.from(tags.values()) });
     }
     return tasks;
-  },
-  isValid(s) {
-    const data = parseJson<{ data?: unknown }>(s);
-    return Array.isArray(data?.data);
   },
 };
 

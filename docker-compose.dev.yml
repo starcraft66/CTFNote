@@ -3,7 +3,7 @@ services:
   db:
     build:
       context: "./db"
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ctfnote
       POSTGRES_USER: ctfnote
@@ -15,7 +15,7 @@ services:
     ports:
       - "5432:5432"
   hedgedoc:
-    image: quay.io/hedgedoc/hedgedoc:1.9.8
+    image: quay.io/hedgedoc/hedgedoc:1.10.0
     environment:
       CMD_DB_URL: "postgres://ctfnote:ctfnote@db:5432/hedgedoc"
       CMD_URL_PATH: "pad"
@@ -23,7 +23,7 @@ services:
       CMD_CSP_ENABLE: "false"
     depends_on:
       - db
-    restart: always
+    restart: unless-stopped
     volumes:
       - pad-uploads:/home/hackmd/app/public/uploads
     networks:
